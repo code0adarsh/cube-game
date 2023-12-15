@@ -1,4 +1,9 @@
 # cube-game
+
+## to play the game directly click on this link
+https://code0adarsh.github.io/cube-game/
+
+
 Title: 3D Game with Three.js
 
 Description:
