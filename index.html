@@ -221,6 +221,13 @@
 
     // Update player and check for collisions with enemies
     cube.update(ground);
+
+    // Check if the player falls below a certain y-coordinate
+    if (cube.position.y < -10) {
+        window.alert("Game Over! You fell off the platform.");
+        restartGame();
+    }
+
     enemies.forEach((enemy, index) => {
         enemy.update(ground);
         if (boxCollision({ box1: cube, box2: enemy })) {
@@ -248,8 +255,7 @@
     }
 
     frames++;
-    }
-
+}
 
 
     // Function to restart the game
