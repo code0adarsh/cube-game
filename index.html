@@ -72,6 +72,7 @@
             this.gravity = -0.002
 
             this.zAcceleration = zAcceleration
+            this.jumpCount = 0; // Track the number of jumps
         }
 
         updateSides() {
@@ -104,7 +105,22 @@
                 const friction = 0.5
                 this.velocity.y *= friction
                 this.velocity.y = -this.velocity.y
+                this.jumpCount = 0; // Reset jump count when on ground
             } else this.position.y += this.velocity.y
+        }
+
+        jump() {
+            // Allow jumping only if the player has not reached max jumps
+            if (this.jumpCount < 2) { // Adjust the value (2) to control maximum jumps
+                this.velocity.y = 0.08
+                this.jumpCount++;
+            }
+        }
+
+        reset() {
+            this.position.set(0, 0, 0);
+            this.velocity.set(0, -0.01, 0);
+            this.jumpCount = 0;
         }
     }
 
@@ -172,7 +188,7 @@
                 keys.w.pressed = true
                 break
             case 'Space':
-                cube.velocity.y = 0.08
+                cube.jump(); // Call jump method for cube
                 break
             case 'KeyR': // Restart on 'R' key
                 restartGame()
@@ -201,83 +217,77 @@
     const enemies = []
 
     let frames = 0
-    let spawnRate = 200
+    let spawnRate = 400; // Increase spawn rate for less frequent spawning
 
     // Animation function
-
-
     function animate() {
-    const animationId = requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+        const animationId = requestAnimationFrame(animate);
+        renderer.render(scene, camera);
 
-    // Player movement code
-    cube.velocity.x = 0;
-    cube.velocity.z = 0;
-    if (keys.a.pressed) cube.velocity.x = -0.05;
-    else if (keys.d.pressed) cube.velocity.x = 0.05;
+        // Player movement code
+        cube.velocity.x = 0;
+        cube.velocity.z = 0;
+        if (keys.a.pressed) cube.velocity.x = -0.05;
+        else if (keys.d.pressed) cube.velocity.x = 0.05;
 
-    if (keys.s.pressed) cube.velocity.z = 0.05;
-    else if (keys.w.pressed) cube.velocity.z = -0.05;
+        if (keys.s.pressed) cube.velocity.z = 0.05;
+        else if (keys.w.pressed) cube.velocity.z = -0.05;
 
-    // Update player and check for collisions with enemies
-    cube.update(ground);
+        // Update player and check for collisions with enemies
+        cube.update(ground);
 
-    // Check if the player falls below a certain y-coordinate
-    if (cube.position.y < -10) {
-        window.alert("Game Over! You fell off the platform.");
-        restartGame();
-    }
-
-    enemies.forEach((enemy, index) => {
-        enemy.update(ground);
-        if (boxCollision({ box1: cube, box2: enemy })) {
-            window.alert("Game Over! You touched an enemy cube.");
+        // Check if the player falls below a certain y-coordinate
+        if (cube.position.y < -10) {
+            window.alert("Game Over! You fell off the platform.");
             restartGame();
         }
-    });
 
-    // Spawn enemies
-    if (frames % spawnRate === 0) {
-        if (spawnRate > 20) spawnRate -= 20;
-
-        const enemy = new Box({
-            width: 1,
-            height: 1,
-            depth: 1,
-            position: { x: (Math.random() - 0.5) * 10, y: 0, z: -20 },
-            velocity: { x: 0, y: 0, z: 0.005 },
-            color: 'red',
-            zAcceleration: true,
+        enemies.forEach((enemy, index) => {
+            enemy.update(ground);
+            if (boxCollision({ box1: cube, box2: enemy })) {
+                window.alert("Game Over! You touched an enemy cube.");
+                restartGame();
+            }
         });
-        enemy.castShadow = true;
-        scene.add(enemy);
-        enemies.push(enemy);
+
+        // Spawn enemies
+        if (frames % spawnRate === 0) {
+            if (spawnRate > 20) spawnRate -= 20;
+
+            const enemy = new Box({
+                width: 1,
+                height: 1,
+                depth: 1,
+                position: { x: (Math.random() - 0.5) * 10, y: 0, z: -20 },
+                velocity: { x: 0, y: 0, z: 0.005 },
+                color: 'red',
+                zAcceleration: true,
+            });
+            enemy.castShadow = true;
+            scene.add(enemy);
+            enemies.push(enemy);
+        }
+
+        frames++;
     }
-
-    frames++;
-}
-
 
     // Function to restart the game
     function restartGame() {
-    // Remove all enemies from the scene
-    enemies.forEach((enemy) => {
-        scene.remove(enemy);
-    });
-    enemies.length = 0; // Clear the array
+        // Remove all enemies from the scene
+        enemies.forEach((enemy) => {
+            scene.remove(enemy);
+        });
+        enemies.length = 0; // Clear the array
 
-    // Reset player position and velocity
-    cube.position.set(0, 0, 0);
-    cube.velocity.set(0, -0.01, 0);
+        // Reset player position and velocity
+        cube.reset();
 
-    // Reset spawn rate
-    spawnRate = 200;
+        // Reset spawn rate
+        spawnRate = 400;
 
-    // Cancel the current animation frame and start a new one
-    cancelAnimationFrame(animationId);
-    animate();
-}
-
+        // Start the animation loop again
+        animate();
+    }
 
     // Start the animation loop
     animate()
